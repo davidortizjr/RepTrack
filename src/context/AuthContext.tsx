@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types';
+import { authAPI } from '../services/api';
 
 interface AuthContextType {
     user: User | null;
@@ -31,17 +32,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            // Mock login - In production, this would be an API call
-            // For now, accept any credentials for demo purposes
-            console.log('Login attempt:', email, password);
-            const mockUser: User = {
-                user_id: 1,
-                email: email,
-                name: 'David'
-            };
+            const apiUser = await authAPI.login(email, password);
+            if (!apiUser) {
+                return false;
+            }
 
-            setUser(mockUser);
-            localStorage.setItem('user', JSON.stringify(mockUser));
+            setUser(apiUser);
+            localStorage.setItem('user', JSON.stringify(apiUser));
             return true;
         } catch (error) {
             console.error('Login failed:', error);
@@ -50,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const logout = () => {
+        void authAPI.logout();
         setUser(null);
         localStorage.removeItem('user');
     };

@@ -1,247 +1,274 @@
-/**
- * API Service
- * 
- * This file contains mock API functions that would connect to a real backend.
- * Replace these with actual API calls when you have a backend server running.
- * 
- * Note: Parameters prefixed with _ are intentionally unused in mock implementations
- */
-
 import type { User, Exercise, Workout, ProgressData } from '../types';
 
-// Update this with your actual API URL when you have a backend
-// const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:5275/api';
+const AUTH_TOKEN_KEY = 'auth_token';
 
-/**
- * Authentication APIs
- */
+type LoginApiResponse = {
+    token?: string;
+    Token?: string;
+    user?: {
+        userId?: number;
+        UserId?: number;
+        user_id?: number;
+        email: string;
+        Email?: string;
+        name?: string;
+        Name?: string;
+    };
+    User?: {
+        userId?: number;
+        UserId?: number;
+        user_id?: number;
+        email?: string;
+        Email?: string;
+        name?: string;
+        Name?: string;
+    };
+};
+
+type LoginApiUser = {
+    userId?: number;
+    UserId?: number;
+    user_id?: number;
+    email?: string;
+    Email?: string;
+    name?: string;
+    Name?: string;
+};
+
+const getAuthToken = (): string | null => localStorage.getItem(AUTH_TOKEN_KEY);
+
+export const setAuthToken = (token: string | null) => {
+    if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+        return;
+    }
+
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+};
+
+const authHeaders = (): HeadersInit => {
+    const token = getAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const mapUser = (user?: LoginApiUser): User | null => {
+    if (!user) {
+        return null;
+    }
+
+    const userId = user.user_id ?? user.userId ?? user.UserId;
+    const email = user.email ?? user.Email;
+    const name = user.name ?? user.Name;
+
+    if (!email) {
+        return null;
+    }
+
+    if (!userId) {
+        return null;
+    }
+
+    return {
+        user_id: userId,
+        email,
+        name,
+    };
+};
 
 export const authAPI = {
-    /**
-     * Login user
-     * @param email - User email
-     * @param password - User password (unused in mock implementation)
-     * @returns User object if successful
-     */
-    login: async (email: string, _password: string): Promise<User | null> => {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // });
-        // const data = await response.json();
-        // return data.user;
-
-        // Mock implementation
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    user_id: 1,
-                    email: email,
-                    name: 'David'
-                });
-            }, 500);
+    login: async (email: string, password: string): Promise<User | null> => {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
         });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const data = (await response.json()) as LoginApiResponse;
+        const token = data.token ?? data.Token;
+        if (token) {
+            setAuthToken(token);
+        }
+
+        return mapUser(data.user ?? data.User);
     },
 
-    /**
-     * Logout user
-     */
     logout: async (): Promise<void> => {
-        // TODO: Replace with actual API call
-        // await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
-
-        // Mock implementation
+        setAuthToken(null);
         return Promise.resolve();
     },
 
-    /**
-     * Register new user
-     */
     register: async (_email: string, _password: string, _name: string): Promise<User | null> => {
-        // TODO: Implement registration API call
         return null;
     }
 };
-
-/**
- * Exercise APIs
- */
 
 export const exerciseAPI = {
-    /**
-     * Get exercises for a program
-     * @param programId - Program ID (1=Push, 2=Pull, 3=Legs)
-     * @returns Array of exercises
-     */
     getExercisesByProgram: async (programId: number): Promise<Exercise[]> => {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`${API_BASE_URL}/exercises?program_id=${programId}`);
-        // return await response.json();
+        const response = await fetch(`${API_BASE_URL}/exercises?programId=${programId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
 
-        // Mock implementation
-        const mockExercises: Record<number, Exercise[]> = {
-            1: [
-                { exercise_id: 1, exercise_name: 'Bench Press', program_id: 1 },
-                { exercise_id: 2, exercise_name: 'Machine Flyes', program_id: 1 },
-                { exercise_id: 3, exercise_name: 'Incline Bench Press', program_id: 1 },
-                { exercise_id: 4, exercise_name: 'Dumbbell Flyes', program_id: 1 },
-                { exercise_id: 5, exercise_name: 'Tricep Pushdowns', program_id: 1 },
-                { exercise_id: 6, exercise_name: 'Overhead Press', program_id: 1 },
-            ],
-            2: [
-                { exercise_id: 7, exercise_name: 'T-Bar Row', program_id: 2 },
-                { exercise_id: 8, exercise_name: 'Lat Pulldown', program_id: 2 },
-                { exercise_id: 9, exercise_name: 'Cable Row', program_id: 2 },
-                { exercise_id: 10, exercise_name: 'Face Pulls', program_id: 2 },
-                { exercise_id: 11, exercise_name: 'Bicep Curls', program_id: 2 },
-                { exercise_id: 12, exercise_name: 'Hammer Curls', program_id: 2 },
-            ],
-            3: [
-                { exercise_id: 13, exercise_name: 'Barbell Squats', program_id: 3 },
-                { exercise_id: 14, exercise_name: 'Leg Press', program_id: 3 },
-                { exercise_id: 15, exercise_name: 'Romanian Deadlift', program_id: 3 },
-                { exercise_id: 16, exercise_name: 'Leg Extension', program_id: 3 },
-                { exercise_id: 17, exercise_name: 'Leg Curl', program_id: 3 },
-                { exercise_id: 18, exercise_name: 'Calf Raises', program_id: 3 },
-            ],
-        };
+        if (!response.ok) {
+            return [];
+        }
 
-        return Promise.resolve(mockExercises[programId] || []);
+        return await response.json();
     },
 
-    /**
-     * Get all exercises
-     */
     getAllExercises: async (): Promise<Exercise[]> => {
-        // TODO: Implement API call
-        return [];
+        const response = await fetch(`${API_BASE_URL}/exercises`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
     }
 };
-
-/**
- * Workout APIs
- */
 
 export const workoutAPI = {
-    /**
-     * Log a workout
-     * @param workout - Workout data
-     * @returns Created workout with ID
-     */
     logWorkout: async (workout: Omit<Workout, 'workout_id'>): Promise<Workout> => {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`${API_BASE_URL}/workouts`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(workout)
-        // });
-        // return await response.json();
-
-        // Mock implementation
-        return Promise.resolve({
-            ...workout,
-            workout_id: Math.floor(Math.random() * 1000),
-            date: new Date().toISOString()
+        const response = await fetch(`${API_BASE_URL}/workouts/batch`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+            body: JSON.stringify({
+                workouts: [
+                    {
+                        exerciseId: workout.exercise_id,
+                        sets: workout.sets,
+                        reps: workout.reps,
+                        weight: workout.weight,
+                    },
+                ],
+            }),
         });
+
+        if (!response.ok) {
+            throw new Error('Failed to log workout');
+        }
+
+        let createdWorkoutId: number | undefined;
+        const responseContentType = response.headers.get('content-type') ?? '';
+
+        if (responseContentType.includes('application/json')) {
+            const created = await response.json() as { workout_id?: number };
+            createdWorkoutId = created.workout_id;
+        }
+
+        return {
+            ...workout,
+            workout_id: createdWorkoutId,
+            date: new Date().toISOString(),
+        };
     },
 
-    /**
-     * Get user's workout history
-     * @param userId - User ID
-     */
     getUserWorkouts: async (_userId: number): Promise<Workout[]> => {
-        // TODO: Implement API call
-        return [];
+        const response = await fetch(`${API_BASE_URL}/workouts/me`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
     },
 
-    /**
-     * Get latest workout
-     * @param userId - User ID
-     */
     getLatestWorkout: async (_userId: number): Promise<Workout | null> => {
-        // TODO: Implement API call
-        return null;
+        const workouts = await workoutAPI.getUserWorkouts(_userId);
+        return workouts.length > 0 ? workouts[0] : null;
     },
 
-    /**
-     * Get total workout count
-     * @param userId - User ID
-     */
     getTotalWorkoutCount: async (_userId: number): Promise<number> => {
-        // TODO: Implement API call
-        // Mock implementation
-        return Promise.resolve(12);
+        const response = await fetch(`${API_BASE_URL}/workouts/stats`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
+
+        if (!response.ok) {
+            return 0;
+        }
+
+        const stats = await response.json() as { total_workouts?: number };
+        return stats.total_workouts ?? 0;
+    },
+
+    saveCustomWorkout: async (payload: {
+        name: string;
+        exerciseIds: number[];
+    }): Promise<void> => {
+        const requestBody = {
+            name: payload.name,
+            workout_name: payload.name,
+            exerciseIds: payload.exerciseIds,
+            exercise_ids: payload.exerciseIds,
+        };
+
+        const endpoints = [
+            `${API_BASE_URL}/workouts/custom`,
+            `${API_BASE_URL}/custom-workouts`,
+        ];
+
+        for (const endpoint of endpoints) {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders(),
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (response.ok) {
+                return;
+            }
+
+            if (response.status !== 404) {
+                throw new Error('Failed to save custom workout');
+            }
+        }
+
+        throw new Error('Custom workout endpoint not found');
     }
 };
-
-/**
- * Progress APIs
- */
 
 export const progressAPI = {
-    /**
-     * Get user's progress data
-     * @param userId - User ID (unused in mock implementation)
-     * @returns Progress data grouped by program
-     */
     getUserProgress: async (_userId: number): Promise<ProgressData[]> => {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`${API_BASE_URL}/progress/${userId}`);
-        // return await response.json();
+        const response = await fetch(`${API_BASE_URL}/progress`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
 
-        // Mock implementation
-        return Promise.resolve([
-            {
-                program_name: 'Push',
-                exercises: [
-                    { exercise_name: 'Bench Press', weight: 100, reps: 5 },
-                    { exercise_name: 'Machine Flyes', weight: 100, reps: 5 },
-                    { exercise_name: 'Incline Bench Press', weight: 100, reps: 5 },
-                    { exercise_name: 'Dumbbell Flyes', weight: 100, reps: 5 },
-                ],
-            },
-            {
-                program_name: 'Pull',
-                exercises: [
-                    { exercise_name: 'T-Bar Row', weight: 100, reps: 5 },
-                    { exercise_name: 'Lat Pulldown', weight: 100, reps: 5 },
-                ],
-            },
-            {
-                program_name: 'Legs',
-                exercises: [
-                    { exercise_name: 'Barbell Squats', weight: 100, reps: 5 },
-                    { exercise_name: 'Leg Press', weight: 100, reps: 5 },
-                ],
-            },
-        ]);
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
     }
 };
-
-/**
- * Example Backend API Structure (Node.js/Express)
- * 
- * You would need to create these endpoints:
- * 
- * POST   /api/auth/login           - User login
- * POST   /api/auth/logout          - User logout
- * POST   /api/auth/register        - User registration
- * 
- * GET    /api/exercises            - Get all exercises
- * GET    /api/exercises?program_id={id} - Get exercises by program
- * POST   /api/exercises            - Create new exercise
- * 
- * GET    /api/workouts             - Get all workouts for user
- * POST   /api/workouts             - Log a new workout
- * GET    /api/workouts/:id         - Get specific workout
- * DELETE /api/workouts/:id         - Delete a workout
- * 
- * GET    /api/progress/:userId     - Get user's progress data
- * 
- * GET    /api/programs             - Get all programs
- */
 
 export default {
     auth: authAPI,

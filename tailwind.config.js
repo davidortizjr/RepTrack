@@ -12,6 +12,7 @@ export default {
                 'background-light': '#f8f6f6',
                 'background-dark': '#140c0c',
                 'card-dark': '#1f1414',
+                'input-dark': '#2a1b1b'
             },
             fontFamily: {
                 display: ['Lexend', 'sans-serif'],

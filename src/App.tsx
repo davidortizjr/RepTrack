@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 import Workouts from './pages/Workouts'
 import Progress from './pages/Progress'
+import CustomWorkout from './pages/CustomWorkout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -37,6 +38,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Progress />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/custom-workout"
+        element={
+          <ProtectedRoute>
+            <CustomWorkout />
           </ProtectedRoute>
         }
       />

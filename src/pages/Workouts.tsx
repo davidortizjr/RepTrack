@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useProgram } from '../context/ProgramContext';
 import Navbar from '../components/Navbar';
 import BackButton from '../components/BackButton';
+import { exerciseAPI, workoutAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import type { Exercise } from '../types';
 
 interface ExerciseData {
     exercise_name: string;
@@ -13,9 +16,11 @@ interface ExerciseData {
 
 const Workouts: React.FC = () => {
     const { selectedProgram, programId } = useProgram();
+    const { user } = useAuth();
     const navigate = useNavigate();
-    const [exercises, setExercises] = useState<{ exercise_name: string }[]>([]);
+    const [exercises, setExercises] = useState<Exercise[]>([]);
     const [workoutData, setWorkoutData] = useState<Record<string, ExerciseData>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!programId) {
@@ -23,36 +28,12 @@ const Workouts: React.FC = () => {
             return;
         }
 
-        const mockExercises: Record<number, { exercise_name: string }[]> = {
-            1: [
-                { exercise_name: 'Bench Press' },
-                { exercise_name: 'Machine Flyes' },
-                { exercise_name: 'Incline Bench Press' },
-                { exercise_name: 'Dumbbell Flyes' },
-                { exercise_name: 'Tricep Pushdowns' },
-                { exercise_name: 'Overhead Press' },
-            ],
-            2: [
-                { exercise_name: 'T-Bar Row' },
-                { exercise_name: 'Lat Pulldown' },
-                { exercise_name: 'Cable Row' },
-                { exercise_name: 'Face Pulls' },
-                { exercise_name: 'Bicep Curls' },
-                { exercise_name: 'Hammer Curls' },
-            ],
-            3: [
-                { exercise_name: 'Barbell Squats' },
-                { exercise_name: 'Leg Press' },
-                { exercise_name: 'Romanian Deadlift' },
-                { exercise_name: 'Leg Extension' },
-                { exercise_name: 'Leg Curl' },
-                { exercise_name: 'Calf Raises' },
-            ],
+        const loadExercises = async () => {
+            const apiExercises = await exerciseAPI.getExercisesByProgram(programId);
+            setExercises(apiExercises);
         };
 
-        if (programId && mockExercises[programId]) {
-            setExercises(mockExercises[programId]);
-        }
+        void loadExercises();
     }, [programId, navigate]);
 
     const handleInputChange = (exerciseName: string, field: keyof ExerciseData, value: string) => {
@@ -66,17 +47,59 @@ const Workouts: React.FC = () => {
         }));
     };
 
-    const handleSubmit = (exerciseName: string) => {
-        const data = workoutData[exerciseName];
-        if (data && data.sets && data.reps && data.weight) {
-            console.log('Submitting workout:', data);
-            alert(`Workout logged: ${exerciseName} - ${data.sets}x${data.reps} @ ${data.weight}kg`);
+    const handleSubmitAll = async () => {
+        if (!user) {
+            return;
+        }
+
+        const workoutsToLog = exercises
+            .map((exercise) => {
+                const data = workoutData[exercise.exercise_name];
+
+                if (!data || !data.sets || !data.reps || !data.weight || !exercise.exercise_id) {
+                    return null;
+                }
+
+                return {
+                    exerciseName: exercise.exercise_name,
+                    payload: {
+                        user_id: user.user_id,
+                        exercise_id: exercise.exercise_id,
+                        sets: data.sets,
+                        reps: data.reps,
+                        weight: data.weight,
+                    },
+                };
+            })
+            .filter((entry): entry is { exerciseName: string; payload: Parameters<typeof workoutAPI.logWorkout>[0] } =>
+                Boolean(entry)
+            );
+
+        if (!workoutsToLog.length) {
+            alert('Enter sets, reps, and weight for at least one exercise before logging.');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            await Promise.all(workoutsToLog.map((entry) => workoutAPI.logWorkout(entry.payload)));
+
+            alert(`Workout logged for ${workoutsToLog.length} exercise(s).`);
 
             setWorkoutData((prev) => {
                 const newData = { ...prev };
-                delete newData[exerciseName];
+
+                workoutsToLog.forEach((entry) => {
+                    delete newData[entry.exerciseName];
+                });
+
                 return newData;
             });
+        } catch (error) {
+            console.error(error);
+            alert('Failed to log workout. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -158,15 +181,17 @@ const Workouts: React.FC = () => {
                                 />
                             </div>
 
-                            <button
-                                className="w-full bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-bold tracking-wide transition-all active:scale-95 shadow-md shadow-primary/20"
-                                onClick={() => handleSubmit(exercise.exercise_name)}
-                            >
-                                LOG WORKOUT
-                            </button>
                         </div>
                     </div>
                 ))}
+
+                <button
+                    className="w-full bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-bold tracking-wide transition-all active:scale-95 shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                    onClick={() => void handleSubmitAll()}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'LOGGING WORKOUT...' : 'LOG WORKOUT'}
+                </button>
             </main>
         </div>
     );

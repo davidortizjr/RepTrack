@@ -1,12 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgram } from '../context/ProgramContext';
 import Navbar from '../components/Navbar';
 import type { ProgramType } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { workoutAPI } from '../services/api';
 
 const Home: React.FC = () => {
     const { setProgram } = useProgram();
+    const { user } = useAuth();
     const navigate = useNavigate();
+    const [totalWorkouts, setTotalWorkouts] = useState<number>(0);
+    const [lastWorkout, setLastWorkout] = useState<string>('—');
+
+    useEffect(() => {
+        if (!user) {
+            setTotalWorkouts(0);
+            setLastWorkout('—');
+            return;
+        }
+
+        const loadStats = async () => {
+            const workouts = await workoutAPI.getUserWorkouts(user.user_id);
+            setTotalWorkouts(workouts.length);
+
+            if (workouts.length === 0) {
+                setLastWorkout('No workouts');
+                return;
+            }
+
+            const latestWorkout = workouts[0];
+            const loggedDate = latestWorkout.date ? new Date(latestWorkout.date) : null;
+
+            if (!loggedDate || Number.isNaN(loggedDate.getTime())) {
+                setLastWorkout('Recent');
+                return;
+            }
+
+            const daysDiff = Math.max(0, Math.floor((Date.now() - loggedDate.getTime()) / (1000 * 60 * 60 * 24)));
+            setLastWorkout(daysDiff === 0 ? 'Today' : `${daysDiff} day${daysDiff > 1 ? 's' : ''} ago`);
+        };
+
+        void loadStats();
+    }, [user]);
 
     const programMap: Record<ProgramType, number> = {
         'PUSH PROGRAM': 1,
@@ -21,7 +57,7 @@ const Home: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white pb-32">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white pb-6">
             <Navbar title="RepTrack" />
 
             <main className="px-6 space-y-8 mt-4">
@@ -35,13 +71,13 @@ const Home: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white dark:bg-card-dark p-6 rounded-xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-1">
                             <p className="text-xs font-medium text-slate-400 uppercase">Last Workout</p>
-                            <p className="text-2xl font-bold text-primary">Legs</p>
-                            <p className="text-[10px] text-slate-400">2 days ago</p>
+                            <p className="text-2xl font-bold text-primary">{lastWorkout}</p>
+                            <p className="text-[10px] text-slate-400">from your latest log</p>
                         </div>
                         <div className="bg-white dark:bg-card-dark p-6 rounded-xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-1">
                             <p className="text-xs font-medium text-slate-400 uppercase">Total Workouts</p>
                             <div className="flex items-baseline gap-1">
-                                <p className="text-2xl font-bold">12</p>
+                                <p className="text-2xl font-bold">{totalWorkouts}</p>
                                 <span className="material-symbols-outlined text-sm text-yellow-500" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
                             </div>
                             <p className="text-[10px] text-slate-400">Level 2 Athlete</p>
@@ -131,7 +167,7 @@ const Home: React.FC = () => {
 
                 <section>
                     <button
-                        onClick={() => handleProgramSelect('CUSTOM')}
+                        onClick={() => navigate('/custom-workout')}
                         className="w-full bg-white dark:bg-card-dark border-2 border-dashed border-slate-200 dark:border-white/10 p-6 rounded-xl flex items-center justify-center gap-3 group active:bg-slate-50 dark:active:bg-white/5 transition-colors"
                     >
                         <span className="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">

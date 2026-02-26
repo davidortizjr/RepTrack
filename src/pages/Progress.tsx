@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import BackButton from '../components/BackButton';
+import { progressAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface ExerciseProgress {
     exercise_name: string;
@@ -14,31 +16,22 @@ interface ProgramProgress {
 }
 
 const Progress: React.FC = () => {
-    const progressData: ProgramProgress[] = [
-        {
-            program_name: 'Push',
-            exercises: [
-                { exercise_name: 'Bench Press', weight: 100, reps: 5 },
-                { exercise_name: 'Machine Flyes', weight: 100, reps: 5 },
-                { exercise_name: 'Incline Bench Press', weight: 100, reps: 5 },
-                { exercise_name: 'Dumbbell Flyes', weight: 100, reps: 5 },
-            ],
-        },
-        {
-            program_name: 'Pull',
-            exercises: [
-                { exercise_name: 'T-Bar Row', weight: 100, reps: 5 },
-                { exercise_name: 'Lat Pulldown', weight: 100, reps: 5 },
-            ],
-        },
-        {
-            program_name: 'Legs',
-            exercises: [
-                { exercise_name: 'Barbell Squats', weight: 100, reps: 5 },
-                { exercise_name: 'Leg Press', weight: 100, reps: 5 },
-            ],
-        },
-    ];
+    const { user } = useAuth();
+    const [progressData, setProgressData] = useState<ProgramProgress[]>([]);
+
+    useEffect(() => {
+        if (!user) {
+            setProgressData([]);
+            return;
+        }
+
+        const loadProgress = async () => {
+            const data = await progressAPI.getUserProgress(user.user_id);
+            setProgressData(data);
+        };
+
+        void loadProgress();
+    }, [user]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white pb-32">
