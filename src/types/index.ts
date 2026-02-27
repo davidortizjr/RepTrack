@@ -42,4 +42,17 @@ export interface ProgressData {
     }[];
 }
 
+export interface CustomWorkoutSummary {
+    program_id: number;
+    program_name: string;
+    exercise_count: number;
+}
+
+export interface CustomWorkoutDetails {
+    program_id: number;
+    name: string;
+    user_id: number;
+    exercise_ids: number[];
+}
+
 export type ProgramType = 'PUSH PROGRAM' | 'PULL PROGRAM' | 'LEGS PROGRAM' | 'CUSTOM';

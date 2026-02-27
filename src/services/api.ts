@@ -1,6 +1,6 @@
-import type { User, Exercise, Workout, ProgressData } from '../types';
+import type { User, Exercise, Workout, ProgressData, CustomWorkoutSummary, CustomWorkoutDetails } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:5275/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 const AUTH_TOKEN_KEY = 'auth_token';
 
 type LoginApiResponse = {
@@ -220,14 +220,12 @@ export const workoutAPI = {
     }): Promise<void> => {
         const requestBody = {
             name: payload.name,
-            workout_name: payload.name,
             exerciseIds: payload.exerciseIds,
-            exercise_ids: payload.exerciseIds,
         };
 
         const endpoints = [
-            `${API_BASE_URL}/workouts/custom`,
             `${API_BASE_URL}/custom-workouts`,
+            `${API_BASE_URL}/workouts/custom`,
         ];
 
         for (const endpoint of endpoints) {
@@ -245,11 +243,57 @@ export const workoutAPI = {
             }
 
             if (response.status !== 404) {
-                throw new Error('Failed to save custom workout');
+                let message = 'Failed to save custom workout';
+                const contentType = response.headers.get('content-type') ?? '';
+
+                if (contentType.includes('application/json')) {
+                    const errorResponse = await response.json() as { message?: string; error?: string };
+                    if (errorResponse.message) {
+                        message = errorResponse.error
+                            ? `${errorResponse.message}: ${errorResponse.error}`
+                            : errorResponse.message;
+                    }
+                }
+
+                if (message.toLowerCase().includes('unique key constraint')) {
+                    message = 'A workout with this name already exists. Please use a different name.';
+                }
+
+                throw new Error(message);
             }
         }
 
         throw new Error('Custom workout endpoint not found');
+    },
+
+    getUserCustomWorkouts: async (_userId: number): Promise<CustomWorkoutSummary[]> => {
+        const response = await fetch(`${API_BASE_URL}/custom-workouts/me`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return await response.json();
+    },
+
+    getCustomWorkoutDetails: async (programId: number, _userId: number): Promise<CustomWorkoutDetails | null> => {
+        const response = await fetch(`${API_BASE_URL}/custom-workouts/${programId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        return await response.json();
     }
 };
 

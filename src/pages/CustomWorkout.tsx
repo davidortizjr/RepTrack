@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import BackButton from '../components/BackButton';
 import AddExerciseModal from '../components/AddExerciseModal';
@@ -17,31 +17,38 @@ const getProgramTag = (programId: number) => {
     return 'Custom • Strength';
 };
 
-const mapExerciseToCustom = (exercise: Exercise, index: number): CustomExercise => ({
-    id: exercise.exercise_id ?? 100000 + index,
-    name: exercise.exercise_name,
-    tag: getProgramTag(exercise.program_id),
-    image: fallbackImage,
-});
+const mapExerciseToCustom = (exercise: Exercise): CustomExercise | null => {
+    if (!exercise.exercise_id || exercise.exercise_id <= 0) {
+        return null;
+    }
+
+    return {
+        id: exercise.exercise_id,
+        name: exercise.exercise_name,
+        tag: getProgramTag(exercise.program_id),
+        image: fallbackImage,
+    };
+};
 
 function SortableItem({
     exercise,
-    onDragStart,
-    onDragOver,
-    onDrop,
+    isDragging,
+    onHandlePointerDown,
+    onHandlePointerUp,
+    onHandlePointerMove,
+    onRemove,
 }: {
     exercise: CustomExercise;
-    onDragStart: (e: React.DragEvent, id: string) => void;
-    onDragOver: (e: React.DragEvent, id: string) => void;
-    onDrop: (e: React.DragEvent, id: string) => void;
+    isDragging: boolean;
+    onHandlePointerDown: (id: string) => void;
+    onHandlePointerUp: () => void;
+    onHandlePointerMove: (e: React.PointerEvent) => void;
+    onRemove: (id: number) => void;
 }) {
     return (
         <div
-            draggable
-            onDragStart={(e) => onDragStart(e, exercise.id.toString())}
-            onDragOver={(e) => onDragOver(e, exercise.id.toString())}
-            onDrop={(e) => onDrop(e, exercise.id.toString())}
-            className="flex items-center justify-between bg-white dark:bg-card-dark p-3 pr-5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group"
+            data-exercise-id={exercise.id.toString()}
+            className={`flex items-center justify-between bg-white dark:bg-card-dark p-3 pr-5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group transition-all duration-200 ease-out ${isDragging ? 'scale-[1.02] -translate-y-0.5 shadow-lg shadow-primary/20 ring-2 ring-primary/30 z-10' : ''}`}
         >
             <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 dark:bg-input-dark">
@@ -53,9 +60,27 @@ function SortableItem({
                 </div>
             </div>
 
-            <button type="button" className="text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors">
-                <span className="material-symbols-outlined">drag_handle</span>
-            </button>
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => onRemove(exercise.id)}
+                    className="w-9 h-9 rounded-full bg-input-dark flex items-center justify-center text-red-800 transition-colors"
+                    aria-label={`Delete ${exercise.name}`}
+                >
+                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+                <button
+                    type="button"
+                    onPointerDown={() => onHandlePointerDown(exercise.id.toString())}
+                    onPointerMove={onHandlePointerMove}
+                    onPointerUp={onHandlePointerUp}
+                    onPointerCancel={onHandlePointerUp}
+                    className={`transition-colors cursor-grab active:cursor-grabbing touch-none select-none ${isDragging ? 'text-primary' : 'text-slate-300 dark:text-slate-600 hover:text-primary'}`}
+                    aria-label={`Drag ${exercise.name}`}
+                >
+                    <span className="material-symbols-outlined">drag_handle</span>
+                </button>
+            </div>
         </div>
     );
 }
@@ -80,7 +105,9 @@ const CustomWorkout: React.FC = () => {
                 return;
             }
 
-            const mappedExercises = exercises.map(mapExerciseToCustom);
+            const mappedExercises = exercises
+                .map(mapExerciseToCustom)
+                .filter((exercise): exercise is CustomExercise => exercise !== null);
             setExercisePool(mappedExercises);
             setSelectedExercises(mappedExercises.slice(0, 3));
             setIsLoadingExercises(false);
@@ -98,22 +125,22 @@ const CustomWorkout: React.FC = () => {
     };
 
     const [draggedId, setDraggedId] = useState<string | null>(null);
+    const lastSwapTargetRef = useRef<string | null>(null);
 
-    const handleDragStart = (e: React.DragEvent, id: string) => {
-        e.dataTransfer.setData('text/plain', id);
+    const handleHandlePointerDown = (id: string) => {
         setDraggedId(id);
+        lastSwapTargetRef.current = null;
     };
 
-    const handleDragOver = (e: React.DragEvent, _id: string) => {
-        e.preventDefault();
+    const handleHandlePointerUp = () => {
+        setDraggedId(null);
+        lastSwapTargetRef.current = null;
     };
 
-    const handleDrop = (e: React.DragEvent, id: string) => {
-        e.preventDefault();
-        const fromId = e.dataTransfer.getData('text/plain') || draggedId;
-        const toId = id;
-
-        if (!fromId || fromId === toId) return;
+    const reorderExercises = (fromId: string, toId: string) => {
+        if (fromId === toId) {
+            return;
+        }
 
         setSelectedExercises((prev) => {
             const fromIndex = prev.findIndex((p) => p.id.toString() === fromId);
@@ -125,9 +152,39 @@ const CustomWorkout: React.FC = () => {
             next.splice(toIndex, 0, moved);
             return next;
         });
-
-        setDraggedId(null);
     };
+
+    const handleHandlePointerMove = (e: React.PointerEvent) => {
+        if (!draggedId) {
+            return;
+        }
+
+        const targetElement = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+        const targetItem = targetElement?.closest('[data-exercise-id]') as HTMLElement | null;
+        const toId = targetItem?.getAttribute('data-exercise-id');
+
+        if (!toId || toId === draggedId || toId === lastSwapTargetRef.current) {
+            return;
+        }
+
+        reorderExercises(draggedId, toId);
+        lastSwapTargetRef.current = toId;
+    };
+
+    useEffect(() => {
+        if (!draggedId) {
+            return;
+        }
+
+        const clearDrag = () => setDraggedId(null);
+        window.addEventListener('pointerup', clearDrag);
+        window.addEventListener('pointercancel', clearDrag);
+
+        return () => {
+            window.removeEventListener('pointerup', clearDrag);
+            window.removeEventListener('pointercancel', clearDrag);
+        };
+    }, [draggedId]);
 
     const handlePickExercise = (exercise: CustomExercise) => {
         const alreadySelected = selectedExercises.some((selected) => selected.id === exercise.id);
@@ -137,6 +194,10 @@ const CustomWorkout: React.FC = () => {
         }
 
         setSelectedExercises((prev) => [...prev, exercise]);
+    };
+
+    const handleRemoveExercise = (exerciseId: number) => {
+        setSelectedExercises((prev) => prev.filter((exercise) => exercise.id !== exerciseId));
     };
 
     const handleSaveWorkout = async () => {
@@ -170,7 +231,8 @@ const CustomWorkout: React.FC = () => {
             alert('Custom workout saved to database.');
         } catch (error) {
             console.error(error);
-            alert('Failed to save custom workout.');
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save custom workout.';
+            alert(errorMessage);
         } finally {
             setIsSavingWorkout(false);
         }
@@ -220,9 +282,11 @@ const CustomWorkout: React.FC = () => {
                                 <SortableItem
                                     key={exercise.id}
                                     exercise={exercise}
-                                    onDragStart={handleDragStart}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
+                                    isDragging={draggedId === exercise.id.toString()}
+                                    onHandlePointerDown={handleHandlePointerDown}
+                                    onHandlePointerMove={handleHandlePointerMove}
+                                    onHandlePointerUp={handleHandlePointerUp}
+                                    onRemove={handleRemoveExercise}
                                 />
                             ))
                         ) : (

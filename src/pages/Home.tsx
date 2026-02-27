@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import type { ProgramType } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { workoutAPI } from '../services/api';
+import type { CustomWorkoutSummary } from '../types';
 
 const Home: React.FC = () => {
     const { setProgram } = useProgram();
@@ -12,17 +13,22 @@ const Home: React.FC = () => {
     const navigate = useNavigate();
     const [totalWorkouts, setTotalWorkouts] = useState<number>(0);
     const [lastWorkout, setLastWorkout] = useState<string>('—');
+    const [customPrograms, setCustomPrograms] = useState<CustomWorkoutSummary[]>([]);
 
     useEffect(() => {
         if (!user) {
             setTotalWorkouts(0);
             setLastWorkout('—');
+            setCustomPrograms([]);
             return;
         }
 
         const loadStats = async () => {
             const workouts = await workoutAPI.getUserWorkouts(user.user_id);
             setTotalWorkouts(workouts.length);
+
+            const programs = await workoutAPI.getUserCustomWorkouts(user.user_id);
+            setCustomPrograms(programs);
 
             if (workouts.length === 0) {
                 setLastWorkout('No workouts');
@@ -53,6 +59,11 @@ const Home: React.FC = () => {
 
     const handleProgramSelect = (programName: ProgramType) => {
         setProgram(programName, programMap[programName]);
+        navigate('/workouts');
+    };
+
+    const handleCustomProgramSelect = (programId: number) => {
+        setProgram('CUSTOM', programId);
         navigate('/workouts');
     };
 
@@ -163,6 +174,30 @@ const Home: React.FC = () => {
                             </button>
                         </div>
                     </div>
+
+                    {user && customPrograms.length > 0 && (
+                        <div className="space-y-3">
+                            {customPrograms.map((program) => (
+                                <div
+                                    key={program.program_id}
+                                    className="bg-white dark:bg-card-dark p-4 rounded-xl shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-between"
+                                >
+                                    <div>
+                                        <p className="font-bold text-slate-800 dark:text-white uppercase">{program.program_name}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            {program.exercise_count} exercise{program.exercise_count === 1 ? '' : 's'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleCustomProgramSelect(program.program_id)}
+                                        className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-full font-bold text-xs tracking-wide transition-all active:scale-95 shadow-lg shadow-primary/30"
+                                    >
+                                        TRAIN
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 <section>

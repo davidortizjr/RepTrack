@@ -119,11 +119,11 @@ const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
                     </div>
                 </div>
 
-                <div className="px-6 mb-6 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex items-center gap-2">
+                <div className="px-6 py-5 mb-6 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex items-center gap-2">
                     <button
                         type="button"
                         onClick={() => setActiveCategory('all')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'all'
+                        className={`px-6 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'all'
                             ? 'bg-primary text-white'
                             : 'bg-slate-100 dark:bg-input-dark text-slate-500 dark:text-slate-400'
                             }`}
@@ -133,7 +133,7 @@ const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveCategory('chest')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'chest'
+                        className={`px-6 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'chest'
                             ? 'bg-primary text-white'
                             : 'bg-slate-100 dark:bg-input-dark text-slate-500 dark:text-slate-400'
                             }`}
@@ -143,7 +143,7 @@ const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveCategory('back')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'back'
+                        className={`px-6 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'back'
                             ? 'bg-primary text-white'
                             : 'bg-slate-100 dark:bg-input-dark text-slate-500 dark:text-slate-400'
                             }`}
@@ -153,7 +153,7 @@ const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveCategory('legs')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'legs'
+                        className={`px-6 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'legs'
                             ? 'bg-primary text-white'
                             : 'bg-slate-100 dark:bg-input-dark text-slate-500 dark:text-slate-400'
                             }`}
@@ -163,7 +163,7 @@ const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveCategory('arms')}
-                        className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'arms'
+                        className={`px-6 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap ${activeCategory === 'arms'
                             ? 'bg-primary text-white'
                             : 'bg-slate-100 dark:bg-input-dark text-slate-500 dark:text-slate-400'
                             }`}

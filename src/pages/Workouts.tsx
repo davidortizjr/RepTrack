@@ -28,13 +28,49 @@ const Workouts: React.FC = () => {
             return;
         }
 
+        if (!user) {
+            return;
+        }
+
         const loadExercises = async () => {
-            const apiExercises = await exerciseAPI.getExercisesByProgram(programId);
-            setExercises(apiExercises);
+            const isCustomProgram = selectedProgram === 'CUSTOM' || programId === 4;
+
+            if (!isCustomProgram) {
+                const apiExercises = await exerciseAPI.getExercisesByProgram(programId);
+                setExercises(apiExercises);
+                return;
+            }
+
+            const customWorkouts = await workoutAPI.getUserCustomWorkouts(user.user_id);
+            if (customWorkouts.length === 0) {
+                setExercises([]);
+                return;
+            }
+
+            const targetProgramId = programId === 4 ? customWorkouts[0].program_id : programId;
+            const customWorkoutDetails = await workoutAPI.getCustomWorkoutDetails(targetProgramId, user.user_id);
+
+            if (!customWorkoutDetails || customWorkoutDetails.exercise_ids.length === 0) {
+                setExercises([]);
+                return;
+            }
+
+            const allExercises = await exerciseAPI.getAllExercises();
+            const exerciseById = new Map(
+                allExercises
+                    .filter((exercise): exercise is Exercise & { exercise_id: number } => Boolean(exercise.exercise_id))
+                    .map((exercise) => [exercise.exercise_id, exercise])
+            );
+
+            const orderedCustomExercises: Exercise[] = customWorkoutDetails.exercise_ids
+                .map((exerciseId) => exerciseById.get(exerciseId))
+                .filter((exercise): exercise is Exercise & { exercise_id: number } => exercise !== undefined);
+
+            setExercises(orderedCustomExercises);
         };
 
         void loadExercises();
-    }, [programId, navigate]);
+    }, [programId, navigate, selectedProgram, user]);
 
     const handleInputChange = (exerciseName: string, field: keyof ExerciseData, value: string) => {
         setWorkoutData((prev) => ({
