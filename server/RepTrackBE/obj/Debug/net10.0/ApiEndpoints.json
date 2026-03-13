@@ -1,0 +1,214 @@
+[
+  {
+    "ContainingType": "RepTrackBE.Endpoints.AuthEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapAuthEndpoints\u003Eb__0_0",
+    "RelativePath": "api/auth/login",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RepTrackBE.DTO.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.CustomWorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapCustomWorkoutEndpoints\u003Eb__0_0",
+    "RelativePath": "api/custom-workouts",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RepTrackBE.DTO.SaveCustomWorkoutRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.CustomWorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapCustomWorkoutEndpoints\u003Eb__0_2",
+    "RelativePath": "api/custom-workouts/{programId:int}",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "programId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.CustomWorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapCustomWorkoutEndpoints\u003Eb__0_3",
+    "RelativePath": "api/custom-workouts/{programId:int}",
+    "HttpMethod": "DELETE",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "programId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.CustomWorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapCustomWorkoutEndpoints\u003Eb__0_1",
+    "RelativePath": "api/custom-workouts/me",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.ProgramEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapProgramEndpoints\u003Eb__0_1",
+    "RelativePath": "api/exercises",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "programId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.ProgramEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapProgramEndpoints\u003Eb__0_0",
+    "RelativePath": "api/programs",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.ProgressEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapProgressEndpoints\u003Eb__0_0",
+    "RelativePath": "api/progress",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.WorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapWorkoutEndpoints\u003Eb__0_0",
+    "RelativePath": "api/workouts/batch",
+    "HttpMethod": "POST",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "RepTrackBE.DTO.WorkoutBatchRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.WorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapWorkoutEndpoints\u003Eb__0_1",
+    "RelativePath": "api/workouts/me",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "RepTrackBE.Endpoints.WorkoutEndpoints\u002B\u003C\u003Ec",
+    "Method": "\u003CMapWorkoutEndpoints\u003Eb__0_2",
+    "RelativePath": "api/workouts/stats",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
+  }
+]
