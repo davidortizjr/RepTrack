@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "isDViCA7XNY=",
+  "dgSpecHash": "QalF/WSAwkU=",
   "success": true,
-  "projectFilePath": "C:\\Users\\David Ortiz\\source\\repos\\RepTrackBE\\RepTrackBE\\RepTrackBE.csproj",
+  "projectFilePath": "C:\\xampp\\htdocs\\workspace\\ReactProjects\\RepTrack\\server\\RepTrackBE\\RepTrackBE.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\David Ortiz\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\David Ortiz\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",

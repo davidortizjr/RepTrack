@@ -1632,11 +1632,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\David Ortiz\\source\\repos\\RepTrackBE\\RepTrackBE\\RepTrackBE.csproj",
+      "projectUniqueName": "C:\\xampp\\htdocs\\workspace\\ReactProjects\\RepTrack\\server\\RepTrackBE\\RepTrackBE.csproj",
       "projectName": "RepTrackBE",
-      "projectPath": "C:\\Users\\David Ortiz\\source\\repos\\RepTrackBE\\RepTrackBE\\RepTrackBE.csproj",
+      "projectPath": "C:\\xampp\\htdocs\\workspace\\ReactProjects\\RepTrack\\server\\RepTrackBE\\RepTrackBE.csproj",
       "packagesPath": "C:\\Users\\David Ortiz\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\David Ortiz\\source\\repos\\RepTrackBE\\RepTrackBE\\obj\\",
+      "outputPath": "C:\\xampp\\htdocs\\workspace\\ReactProjects\\RepTrack\\server\\RepTrackBE\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
